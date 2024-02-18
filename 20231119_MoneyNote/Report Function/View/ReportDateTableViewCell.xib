@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="21701" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="21679"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="Stack View standard spacing" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" rowHeight="86" id="KGk-i7-Jjw" customClass="ReportDateTableViewCell" customModule="_0231119_MoneyNote" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="320" height="86"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+                <rect key="frame" x="0.0" y="0.0" width="320" height="86"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <stackView opaque="NO" contentMode="scaleToFill" spacingType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="k25-ug-RRM">
+                        <rect key="frame" x="16" y="16" width="288" height="54"/>
+                        <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7rP-OZ-JLN">
+                                <rect key="frame" x="0.0" y="0.0" width="49.666666666666664" height="54"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" image="arrowtriangle.left.circle" catalog="system"/>
+                                <connections>
+                                    <action selector="preButtonTapped:" destination="KGk-i7-Jjw" eventType="touchUpInside" id="fZG-Xn-P5V"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="249" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hp9-5A-6U4">
+                                <rect key="frame" x="57.666666666666671" y="0.0" width="172.66666666666663" height="54"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="gray" title="2023/02"/>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="SCd-hl-AbP">
+                                <rect key="frame" x="238.33333333333334" y="0.0" width="49.666666666666657" height="54"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" image="arrowtriangle.right.circle" catalog="system"/>
+                                <connections>
+                                    <action selector="nextButtonTapped:" destination="KGk-i7-Jjw" eventType="touchUpInside" id="Kk8-YY-7j2"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                    </stackView>
+                </subviews>
+                <constraints>
+                    <constraint firstAttribute="bottom" secondItem="k25-ug-RRM" secondAttribute="bottom" constant="16" id="6u8-t8-81k"/>
+                    <constraint firstItem="k25-ug-RRM" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" constant="16" id="77A-HK-1aG"/>
+                    <constraint firstAttribute="trailing" secondItem="k25-ug-RRM" secondAttribute="trailing" constant="16" id="WIT-Sk-BgZ"/>
+                    <constraint firstItem="k25-ug-RRM" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="16" id="jGU-qF-nL4"/>
+                </constraints>
+            </tableViewCellContentView>
+            <viewLayoutGuide key="safeArea" id="njF-e1-oar"/>
+            <connections>
+                <outlet property="monthButton" destination="hp9-5A-6U4" id="0B5-KE-g3f"/>
+            </connections>
+            <point key="canvasLocation" x="87" y="37"/>
+        </tableViewCell>
+    </objects>
+    <resources>
+        <image name="arrowtriangle.left.circle" catalog="system" width="128" height="123"/>
+        <image name="arrowtriangle.right.circle" catalog="system" width="128" height="123"/>
+    </resources>
+</document>

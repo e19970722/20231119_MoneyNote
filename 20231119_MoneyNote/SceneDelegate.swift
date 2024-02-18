@@ -11,12 +11,43 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
 
-
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         guard let _ = (scene as? UIWindowScene) else { return }
+        
+        let accountTabBarController = AccountTabBarController()
+        
+        // Nav.
+        let accountNavigationController = AccountNavigationController()
+        let reportNavigationController = ReportNavigationController()
+        
+        // VCs
+        let accountViewController = AccountViewController()
+        let reportViewController = ReportViewController()
+        let profileViewController = ProfileViewController()
+        
+        
+        accountNavigationController.title = "Input"
+        accountNavigationController.tabBarItem.image = UIImage(systemName: "pencil")
+        
+        reportNavigationController.title = "Report"
+        reportNavigationController.tabBarItem.image = UIImage(systemName: "chart.pie.fill")
+        
+        profileViewController.title = "Profile"
+        profileViewController.tabBarItem.image = UIImage(systemName: "person.crop.circle")
+        
+        accountTabBarController.viewControllers = [profileViewController,
+                                                   reportNavigationController,
+                                                   accountNavigationController]
+        
+//        accountTabBarController.viewControllers = [accountNavigationController,
+//                                                   reportNavigationController]
+        
+        accountNavigationController.viewControllers = [accountViewController]
+        reportNavigationController.viewControllers = [reportViewController]
+        window?.rootViewController = accountTabBarController
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

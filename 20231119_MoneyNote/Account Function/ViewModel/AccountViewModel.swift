@@ -1,0 +1,194 @@
+//
+//  AccountViewModel.swift
+//  20231119_MoneyNote
+//
+//  Created by Yen Lin on 2023/11/26.
+//
+
+import Foundation
+import Combine
+
+final class AccountViewModel {
+    
+    enum Input {
+        case fetchItems
+        case segmentDidChange(selectedIndex: Int)
+        case addButtonTapped
+        
+        case allSegmentDidSelect
+        case expenseSegmentDidSelect
+        case incomeSegmentDidSelect
+        case cellDidDelete(record: Record)
+    }
+
+    enum Output {
+        case fetchItemDidSucceed(record: RecordResponse)
+        case fetchItemDidFailed(error: Error)
+        case changeAddButton(expenseIncome: AccountType)
+        case uploadItemDidSucceed
+        case uploadItemDidFailed(error: Error)
+        
+        case itemsDidFiltered(record: [Record])
+        case deleteItemDidSucceed
+        case deleteItemDidFailed(error: Error)
+    }
+    
+    var record: Fields?
+    var records = [Record]()
+    var filteredRecords = [Record]()
+    var balanceString: String
+    var balanceRatio: Float
+    
+    var expenseIncome: AccountType?
+    var selectDate: String?
+    var note: String?
+    var amount: String?
+    var category: CategoryType?
+    
+    private let apiServiceType: APIServiceType
+    private let output: PassthroughSubject<Output, Never> = .init()
+    private var cancellables = Set<AnyCancellable>()
+    
+    private var segmentChange = PassthroughSubject<AccountType, Never>()
+    
+    init(apiServiceType: APIServiceType = APIService()) {
+        
+        self.balanceString = "Balance: $- / $-"
+        self.balanceRatio = 0.0
+        
+        self.apiServiceType = apiServiceType
+        
+        self.expenseIncome = .expense
+        self.selectDate = getTodayString()
+        self.category = .food
+    }
+    
+    func getTodayString() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy/MM/dd EEE"
+        formatter.locale = Locale(identifier: "en_us")
+        return formatter.string(from: Date.now)
+    }
+    
+    func transform(input: AnyPublisher<Input, Never>) -> AnyPublisher<Output, Never> {
+      input.sink { [weak self] event in
+          switch event {
+          case .fetchItems:
+              self?.handleFetchItems()
+              
+          case .segmentDidChange(let selectedIndex):
+              switch selectedIndex {
+              case 0:
+                  self?.expenseIncome = .expense
+              case 1:
+                  self?.expenseIncome = .income
+              default:
+                  break
+              }
+              guard let expenseIncome = self?.expenseIncome else { return }
+              self?.output.send(.changeAddButton(expenseIncome: expenseIncome))
+              
+          case .addButtonTapped:
+              if let expenseIncome = self?.expenseIncome?.labelName,
+                 let date = self?.selectDate,
+                 let note = self?.note,
+                 let amount = self?.amount,
+                 let category = self?.category?.iconName {
+                  print("====================================")
+                  print("*** New Record：", expenseIncome, date, note, amount, category)
+                  
+                  self?.record = Fields(expenseIncome: expenseIncome, date: date, note: note, amount: amount, category: category)
+                  self?.handleUploadItems(field: self?.record)
+              }
+          case .cellDidDelete(let record):
+              self?.handleDeleteItems(record: record)
+              
+          case .allSegmentDidSelect:
+              if let filteredResult = self?.records {
+                  self?.filteredRecords = filteredResult
+                  self?.output.send(.itemsDidFiltered(record: filteredResult))
+              }
+          case .expenseSegmentDidSelect:
+              if let filteredResult = self?.records.filter({ $0.fields.expenseIncome == "Expense" }) {
+                  self?.filteredRecords = filteredResult
+                  self?.output.send(.itemsDidFiltered(record: filteredResult))
+              }
+          case .incomeSegmentDidSelect:
+              if let filteredResult = self?.records.filter({ $0.fields.expenseIncome == "Income" }) {
+                  self?.filteredRecords = filteredResult
+                  self?.output.send(.itemsDidFiltered(record: filteredResult))
+              }
+          }
+      }.store(in: &cancellables)
+        
+      return output.eraseToAnyPublisher()
+    }
+    
+    private func handleDeleteItems(record: Record?) {
+        guard let record = record else { return }
+        
+        apiServiceType.deleteItem(record: record)
+        .sink { [weak self] completion in
+            if case .failure(let error) = completion {
+                self?.output.send(.deleteItemDidFailed(error: error))
+            }
+        } receiveValue: { record in
+            self.output.send(.deleteItemDidSucceed)
+        }.store(in: &cancellables)
+    }
+    
+    private func handleUploadItems(field: Fields?) {
+        guard let field = field else { return }
+        
+        apiServiceType.uploadItem(field: field)
+        .sink { [weak self] completion in
+            if case .failure(let error) = completion {
+                self?.output.send(.uploadItemDidFailed(error: error))
+            }
+        } receiveValue: { record in
+            self.output.send(.uploadItemDidSucceed)
+        }.store(in: &cancellables)
+
+    }
+    
+    private func handleFetchItems() {
+        apiServiceType.fetchItems()
+        .sink { [weak self] completion in
+            if case .failure(let error) = completion {
+                self?.output.send(.fetchItemDidFailed(error: error))
+            }
+        } receiveValue: { record in
+            self.output.send(.fetchItemDidSucceed(record: record))
+        }.store(in: &cancellables)
+
+    }
+    
+    func calculateBalance(recordResponse: RecordResponse) {
+        let records = recordResponse.records
+        let incomeRecords = records.filter({ $0.fields.expenseIncome == "Income" })
+        let expenseRecords = records.filter({ $0.fields.expenseIncome == "Expense" })
+        var totalBalance = 0
+        
+        var totalIncome = 0
+        for income in incomeRecords {
+            if let amountString = income.fields.amount,
+               let amountInt = Int(amountString) {
+                totalIncome += amountInt
+            }
+        }
+        
+        var totalExpense = 0
+        for expense in expenseRecords {
+            if let amountString = expense.fields.amount,
+               let amountInt = Int(amountString) {
+                totalExpense += amountInt
+            }
+        }
+        totalBalance = totalIncome - totalExpense
+        
+        self.balanceRatio = Float(totalBalance) / Float(totalIncome)
+        self.balanceString = "Balance: $\(totalBalance) / $\(totalIncome)"
+        
+    }
+}
+
