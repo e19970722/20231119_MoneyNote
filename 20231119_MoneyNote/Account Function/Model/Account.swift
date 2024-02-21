@@ -29,18 +29,18 @@ struct Fields: Codable {
     let category: String?
 }
 
-struct Account: Codable {
-    var expenseIncome: AccountType
-    var date: String
-    var note: String
-    var amount: String
-    var category: CategoryType
-
+//struct Account: Codable {
+//    var expenseIncome: AccountType
+//    var date: String
+//    var note: String
+//    var amount: String
+//    var category: CategoryType
+//
 //    static let defaultVaule: [Account] = [
 //        .init(expenseIncome: .income, date: "2023/12/13, Wed", note: "Salary of Dec.", amount: "2700", category: .exchange),
 //        .init(expenseIncome: .expense, date: "2023/12/16, Sat", note: "Dinner", amount: "35", category: .food)
 //    ]
-}
+//}
 
 protocol APIServiceType {
     

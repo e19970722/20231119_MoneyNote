@@ -45,6 +45,26 @@ class AccountRecordViewController: UIViewController {
         setupLoadingView()
         bindViewModel()
         segmentControl.addTarget(self, action: #selector(segmentDidChange), for: .valueChanged)
+        
+        NotificationCenter
+            .default
+            .publisher(for: UITextField.textDidChangeNotification, object: searchBar.searchTextField)
+            .compactMap { notification in
+                (notification.object as? UITextField)?.text
+            }
+            .sink { [weak self] text in
+                if let tempArr = self?.viewModel.filteredRecords.filter({
+                    $0.fields.note?.localizedStandardContains(text) ?? false }),
+                   !text.isEmpty {
+                    self?.viewModel.filteredRecords = tempArr
+                } else {
+                    if let allArr = self?.viewModel.records {
+                        self?.viewModel.filteredRecords = allArr
+                    }
+                }
+                self?.tableView.reloadData()
+                
+            }.store(in: &cancellables)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -102,28 +122,30 @@ class AccountRecordViewController: UIViewController {
                 
                 switch event {
                 case .fetchItemDidSucceed(let recordResponse):
-                    self?.viewModel.records = recordResponse.records
-                    self?.viewModel.filteredRecords = recordResponse.records
-                    self?.tableView.reloadData()
-                    
-                case .fetchItemDidFailed(let error):
+                    if let sortedArr = self?.viewModel.sortedArrDate(arr: recordResponse.records) {
+                        self?.viewModel.records = sortedArr
+                        self?.viewModel.filteredRecords = sortedArr
+                        self?.tableView.reloadData()
+                        
+                    }
+                case .fetchItemDidFail(let error):
                     let alertVC = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
                     let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
                     alertVC.addAction(okAction)
                     self?.present(alertVC, animated: true)
                     
-                case .itemsDidFiltered(let filterRecord):
+                case .itemsDidFilter(let filterRecord):
                     self?.viewModel.filteredRecords = filterRecord
                     self?.tableView.reloadData()
                 
                 case .deleteItemDidSucceed:
-                    
-                    self?.tableView.reloadData()
-                    
                     let alertVC = UIAlertController(title: "Success", message: "Record Delete Successfully", preferredStyle: .alert)
                     let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
                     alertVC.addAction(okAction)
                     self?.present(alertVC, animated: true)
+                    
+                    self?.input.send(.fetchItems)
+                    self?.tableView.reloadData()
                     
                 case .deleteItemDidFailed(let error):
                     let alertVC = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
@@ -148,6 +170,8 @@ class AccountRecordViewController: UIViewController {
             input.send(.allSegmentDidSelect)
         }
         self.loadingView.isHidden = true
+        
+        self.searchBar.searchTextField.text = ""
     }
 }
 

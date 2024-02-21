@@ -17,6 +17,13 @@ class ReportViewController: UIViewController {
     var formCells: [FormCellType] = [.reportDate, .reportChart, .reportCategory]
     var categories: [CategoryType] = [.food, .salary, .clothes, .cosmetics, .exchange, .medical, .education, .electricBill, .transportation, .contactFee, .housingExpense]
     
+    var segmentControl: UISegmentedControl = {
+        var segmentControl = UISegmentedControl(items: [AccountType.expense.labelName, AccountType.income.labelName])
+        segmentControl.selectedSegmentIndex = 0
+        segmentControl.sizeToFit()
+        return segmentControl
+    }()
+    
     let tableView: UITableView = {
         let tableView = UITableView()
         tableView.allowsSelection = false
@@ -28,11 +35,13 @@ class ReportViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.navigationItem.title = "Report"
         tableView.dataSource = self
         tableView.delegate = self
+        
         setupUI()
         bindViewModel()
+        
+        segmentControl.addTarget(self, action: #selector(segmentDidChange), for: .valueChanged)
         
     }
     
@@ -50,14 +59,17 @@ class ReportViewController: UIViewController {
             switch event {
             case .fetchItemDidSucceed(let recordResponse):
                 self?.viewModel.records = recordResponse.records
-                self?.input.send(.selectMonthDidChange(selectMonth: self?.viewModel.selectedMonth ?? ""))
-                self?.tableView.reloadData()
+                self?.input.send(.segmentDidChange(selectSegment: .expense))
                 
             case .fetchItemDidFailed(let error):
                 let alertVC = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
                 let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
                 alertVC.addAction(okAction)
                 self?.present(alertVC, animated: true)
+            
+            case .itemsDidFilter(let filteredArr):
+                self?.input.send(.selectMonthDidChange(recordsArr: filteredArr,
+                                                       selectMonth: self?.viewModel.selectedMonth ?? ""))
             
             case .selectMonthDidFilter:
                 self?.tableView.reloadData()
@@ -68,6 +80,9 @@ class ReportViewController: UIViewController {
     func setupUI() {
         
         view.backgroundColor = .white
+        
+        segmentControl.frame = CGRect(x: 0, y: 0, width: 80, height: 36)
+        self.navigationItem.titleView = segmentControl
         
         tableView.register(ReportChartTableViewCell.self, forCellReuseIdentifier: "\(ReportChartTableViewCell.self)")
         tableView.register(UINib(nibName: "\(ReportDateTableViewCell.self)", bundle: nil), forCellReuseIdentifier: "\(ReportDateTableViewCell.self)")
@@ -82,6 +97,14 @@ class ReportViewController: UIViewController {
             tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
         
+    }
+    
+    @objc func segmentDidChange() {
+        if self.segmentControl.selectedSegmentIndex == 0 {
+            input.send(.segmentDidChange(selectSegment: .expense))
+        } else if segmentControl.selectedSegmentIndex == 1 {
+            input.send(.segmentDidChange(selectSegment: .income))
+        }
     }
 
 }
@@ -130,7 +153,10 @@ extension ReportViewController: UITableViewDataSource, UITableViewDelegate {
             cell.cancellables.removeAll()
             cell.monthChange.sink { [weak self] monthString in
                 self?.viewModel.selectedMonth = monthString
-                self?.input.send(.selectMonthDidChange(selectMonth: monthString))
+                if let filteredArr = self?.viewModel.filteredRecords {
+                    self?.input.send(.selectMonthDidChange(recordsArr: filteredArr, selectMonth: monthString))
+                }
+                
             }.store(in: &cell.cancellables)
             return cell
             

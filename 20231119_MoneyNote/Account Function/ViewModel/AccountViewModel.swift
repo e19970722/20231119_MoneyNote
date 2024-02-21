@@ -23,12 +23,12 @@ final class AccountViewModel {
 
     enum Output {
         case fetchItemDidSucceed(record: RecordResponse)
-        case fetchItemDidFailed(error: Error)
+        case fetchItemDidFail(error: Error)
         case changeAddButton(expenseIncome: AccountType)
         case uploadItemDidSucceed
         case uploadItemDidFailed(error: Error)
         
-        case itemsDidFiltered(record: [Record])
+        case itemsDidFilter(record: [Record])
         case deleteItemDidSucceed
         case deleteItemDidFailed(error: Error)
     }
@@ -106,17 +106,17 @@ final class AccountViewModel {
           case .allSegmentDidSelect:
               if let filteredResult = self?.records {
                   self?.filteredRecords = filteredResult
-                  self?.output.send(.itemsDidFiltered(record: filteredResult))
+                  self?.output.send(.itemsDidFilter(record: filteredResult))
               }
           case .expenseSegmentDidSelect:
               if let filteredResult = self?.records.filter({ $0.fields.expenseIncome == "Expense" }) {
                   self?.filteredRecords = filteredResult
-                  self?.output.send(.itemsDidFiltered(record: filteredResult))
+                  self?.output.send(.itemsDidFilter(record: filteredResult))
               }
           case .incomeSegmentDidSelect:
               if let filteredResult = self?.records.filter({ $0.fields.expenseIncome == "Income" }) {
                   self?.filteredRecords = filteredResult
-                  self?.output.send(.itemsDidFiltered(record: filteredResult))
+                  self?.output.send(.itemsDidFilter(record: filteredResult))
               }
           }
       }.store(in: &cancellables)
@@ -155,12 +155,21 @@ final class AccountViewModel {
         apiServiceType.fetchItems()
         .sink { [weak self] completion in
             if case .failure(let error) = completion {
-                self?.output.send(.fetchItemDidFailed(error: error))
+                self?.output.send(.fetchItemDidFail(error: error))
             }
         } receiveValue: { record in
             self.output.send(.fetchItemDidSucceed(record: record))
         }.store(in: &cancellables)
 
+    }
+    
+    func sortedArrDate(arr: [Record]) -> [Record] {
+        let sortedArr = arr.sorted { first, second in
+            guard let firstDate = first.fields.date,
+                  let secondDate = second.fields.date else { return false }
+            return firstDate > secondDate
+        }
+        return sortedArr
     }
     
     func calculateBalance(recordResponse: RecordResponse) {

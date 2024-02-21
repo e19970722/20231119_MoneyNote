@@ -95,7 +95,7 @@ class AccountViewController: UIViewController {
                     self?.viewModel.records = recordResponse.records
                     self?.tableView.reloadData()
                     
-                case .fetchItemDidFailed(let error):
+                case .fetchItemDidFail(let error):
                     let alertVC = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
                     let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
                     alertVC.addAction(okAction)

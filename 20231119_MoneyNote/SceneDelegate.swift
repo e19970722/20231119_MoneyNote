@@ -38,12 +38,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         profileViewController.title = "Profile"
         profileViewController.tabBarItem.image = UIImage(systemName: "person.crop.circle")
         
-        accountTabBarController.viewControllers = [profileViewController,
-                                                   reportNavigationController,
-                                                   accountNavigationController]
+//        accountTabBarController.viewControllers = [profileViewController,
+//                                                   reportNavigationController,
+//                                                   accountNavigationController]
         
-//        accountTabBarController.viewControllers = [accountNavigationController,
-//                                                   reportNavigationController]
+        accountTabBarController.viewControllers = [accountNavigationController,
+                                                   reportNavigationController]
         
         accountNavigationController.viewControllers = [accountViewController]
         reportNavigationController.viewControllers = [reportViewController]

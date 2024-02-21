@@ -12,16 +12,19 @@ final class ReportViewModel {
     
     enum Input {
         case fetchItems
-        case selectMonthDidChange(selectMonth: String)
+        case segmentDidChange(selectSegment: AccountType)
+        case selectMonthDidChange(recordsArr: [Record], selectMonth: String)
     }
     
     enum Output {
         case fetchItemDidSucceed(record: RecordResponse)
         case fetchItemDidFailed(error: Error)
+        case itemsDidFilter(filteredArr: [Record])
         case selectMonthDidFilter
     }
     
     var records = [Record]()
+    var filteredRecords = [Record]()
     var categoryDict = [CategoryType:Double]()
     var selectedMonth: String?
     
@@ -40,8 +43,27 @@ final class ReportViewModel {
             case .fetchItems:
                 self?.handleFetchItems()
                 
-            case .selectMonthDidChange(let selectMonth):
-                self?.makeCategoryAmountDict(filterMonth: selectMonth)
+            case .segmentDidChange(let selectSegment):
+                switch selectSegment {
+                case .expense:
+                    if let filteredResult = self?.records.filter({ $0.fields.expenseIncome == "Expense" }) {
+                        self?.filteredRecords = filteredResult
+                        self?.output.send(.itemsDidFilter(filteredArr: filteredResult))
+                    }
+                case .income:
+                    if let filteredResult = self?.records.filter({ $0.fields.expenseIncome == "Income" }) {
+                        self?.filteredRecords = filteredResult
+                        self?.output.send(.itemsDidFilter(filteredArr: filteredResult))
+                    }
+                default:
+                    if let records = self?.records {
+                        self?.filteredRecords = records
+                        self?.output.send(.itemsDidFilter(filteredArr: records))
+                    }
+                }
+                
+            case .selectMonthDidChange(let filteredArr, let selectMonth):
+                self?.makeCategoryAmountDict(recordsArr: filteredArr, filterMonth: selectMonth)
             }
         }.store(in: &cancellables)
         return output.eraseToAnyPublisher()
@@ -66,14 +88,14 @@ final class ReportViewModel {
         return formatter.string(from: date)
     }
     
-    func makeCategoryAmountDict(filterMonth: String) {
+    func makeCategoryAmountDict(recordsArr: [Record], filterMonth: String) {
         
         let categories: [CategoryType] = [.food, .salary, .clothes, .cosmetics, .exchange, .medical, .education, .electricBill, .transportation, .contactFee, .housingExpense]
         
         var amountDict = [CategoryType: Double]()
         
         // 篩選當月份
-        let currentMonthRecord = self.records.filter({ $0.fields.date!.contains(filterMonth) })
+        let currentMonthRecord = recordsArr.filter({ $0.fields.date!.contains(filterMonth) })
         
         // 篩選該類別
         for cat in categories {
