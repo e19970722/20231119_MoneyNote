@@ -10,10 +10,7 @@ import Combine
 
 class AccountViewController: UIViewController {
     
-    private var viewModel = AccountViewModel()
-    private let input: PassthroughSubject<AccountViewModel.Input, Never> = .init()
-    private var cancellables = Set<AnyCancellable>()
-    
+    // MARK: - Public Properties
     var formCells: [FormCellType] = [.balanceRatio, .date, .datePicker, .note, .amount, .category]
         
     var isDatePickerHidden = true {
@@ -55,6 +52,12 @@ class AccountViewController: UIViewController {
         return button
     }()
     
+    // MARK: - Private Properties
+    private var viewModel = AccountViewModel()
+    private let input: PassthroughSubject<AccountViewModel.Input, Never> = .init()
+    private var cancellables = Set<AnyCancellable>()
+    
+    // MARK: - Life Cycles
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -138,7 +141,7 @@ class AccountViewController: UIViewController {
             }.store(in: &cancellables)
     }
     
-    func setupUI() {
+    private func setupUI() {
         // Left Nav.: Logo
         let leftContainer = UIView(frame: CGRect(x: 0, y: 0, width: logoImageView.frame.size.width, height: logoImageView.frame.size.height))
         leftContainer.addSubview(logoImageView)
@@ -194,15 +197,15 @@ class AccountViewController: UIViewController {
         loadingView.isHidden = true
     }
     
-    @objc func addButtonTapped() {
+    @objc private func addButtonTapped() {
         input.send(.addButtonTapped)
     }
     
-    @objc func segmentDidChange() {
+    @objc private func segmentDidChange() {
         input.send(.segmentDidChange(selectedIndex: self.segmentControl.selectedSegmentIndex))
     }
     
-    @objc func listButtonTapped() {
+    @objc private func listButtonTapped() {
         let accountRecordVC = AccountRecordViewController()
         self.navigationController?.pushViewController(accountRecordVC, animated: true)
     }

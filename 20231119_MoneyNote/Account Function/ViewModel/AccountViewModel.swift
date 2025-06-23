@@ -10,6 +10,7 @@ import Combine
 
 final class AccountViewModel {
     
+    // MARK: - Events
     enum Input {
         case fetchItems
         case segmentDidChange(selectedIndex: Int)
@@ -33,6 +34,7 @@ final class AccountViewModel {
         case deleteItemDidFailed(error: Error)
     }
     
+    // MARK: - Public Properties
     var record: Fields?
     var records = [Record]()
     var filteredRecords = [Record]()
@@ -45,12 +47,13 @@ final class AccountViewModel {
     var amount: String?
     var category: CategoryType?
     
+    // MARK: - Private Properties
     private let apiServiceType: APIServiceType
     private let output: PassthroughSubject<Output, Never> = .init()
     private var cancellables = Set<AnyCancellable>()
-    
     private var segmentChange = PassthroughSubject<AccountType, Never>()
     
+    // MARK: - Initializer
     init(apiServiceType: APIServiceType = APIService()) {
         
         self.balanceString = "Balance: $- / $-"
@@ -63,6 +66,7 @@ final class AccountViewModel {
         self.category = .food
     }
     
+    // MARK: - Public Methods
     func getTodayString() -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy/MM/dd EEE"
@@ -124,6 +128,44 @@ final class AccountViewModel {
       return output.eraseToAnyPublisher()
     }
     
+    func sortedArrDate(arr: [Record]) -> [Record] {
+        let sortedArr = arr.sorted { first, second in
+            guard let firstDate = first.fields.date,
+                  let secondDate = second.fields.date else { return false }
+            return firstDate > secondDate
+        }
+        return sortedArr
+    }
+    
+    func calculateBalance(recordResponse: RecordResponse) {
+        let records = recordResponse.records
+        let incomeRecords = records.filter({ $0.fields.expenseIncome == "Income" })
+        let expenseRecords = records.filter({ $0.fields.expenseIncome == "Expense" })
+        var totalBalance = 0
+        
+        var totalIncome = 0
+        for income in incomeRecords {
+            if let amountString = income.fields.amount,
+               let amountInt = Int(amountString) {
+                totalIncome += amountInt
+            }
+        }
+        
+        var totalExpense = 0
+        for expense in expenseRecords {
+            if let amountString = expense.fields.amount,
+               let amountInt = Int(amountString) {
+                totalExpense += amountInt
+            }
+        }
+        totalBalance = totalIncome - totalExpense
+        
+        self.balanceRatio = Float(totalBalance) / Float(totalIncome)
+        self.balanceString = "Balance: $\(totalBalance) / $\(totalIncome)"
+        
+    }
+    
+    // MARK: - Private Methods
     private func handleDeleteItems(record: Record?) {
         guard let record = record else { return }
         
@@ -161,43 +203,6 @@ final class AccountViewModel {
             self.output.send(.fetchItemDidSucceed(record: record))
         }.store(in: &cancellables)
 
-    }
-    
-    func sortedArrDate(arr: [Record]) -> [Record] {
-        let sortedArr = arr.sorted { first, second in
-            guard let firstDate = first.fields.date,
-                  let secondDate = second.fields.date else { return false }
-            return firstDate > secondDate
-        }
-        return sortedArr
-    }
-    
-    func calculateBalance(recordResponse: RecordResponse) {
-        let records = recordResponse.records
-        let incomeRecords = records.filter({ $0.fields.expenseIncome == "Income" })
-        let expenseRecords = records.filter({ $0.fields.expenseIncome == "Expense" })
-        var totalBalance = 0
-        
-        var totalIncome = 0
-        for income in incomeRecords {
-            if let amountString = income.fields.amount,
-               let amountInt = Int(amountString) {
-                totalIncome += amountInt
-            }
-        }
-        
-        var totalExpense = 0
-        for expense in expenseRecords {
-            if let amountString = expense.fields.amount,
-               let amountInt = Int(amountString) {
-                totalExpense += amountInt
-            }
-        }
-        totalBalance = totalIncome - totalExpense
-        
-        self.balanceRatio = Float(totalBalance) / Float(totalIncome)
-        self.balanceString = "Balance: $\(totalBalance) / $\(totalIncome)"
-        
     }
 }
 

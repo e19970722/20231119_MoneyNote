@@ -10,10 +10,7 @@ import Combine
 
 class AccountRecordViewController: UIViewController {
     
-    private let viewModel = AccountViewModel()
-    private let input: PassthroughSubject<AccountViewModel.Input, Never> = .init()
-    private var cancellables = Set<AnyCancellable>()
-    
+    // MARK: - Public Properties
     let tableView: UITableView = {
         let tableView = UITableView()
         tableView.allowsSelection = false
@@ -38,6 +35,12 @@ class AccountRecordViewController: UIViewController {
     var loadingView = UIView()
     var activityIndicator = UIActivityIndicatorView()
     
+    // MARK: - Private Properties
+    private let viewModel = AccountViewModel()
+    private let input: PassthroughSubject<AccountViewModel.Input, Never> = .init()
+    private var cancellables = Set<AnyCancellable>()
+    
+    // MARK: - Life Cycles
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -75,6 +78,7 @@ class AccountRecordViewController: UIViewController {
         input.send(.fetchItems)
     }
     
+    // MARK: - Private Methods
     private func setupUI() {
         
         self.tableView.delegate = self
@@ -161,7 +165,7 @@ class AccountRecordViewController: UIViewController {
             .store(in: &cancellables)
     }
     
-    @objc func segmentDidChange() {
+    @objc private func segmentDidChange() {
         if self.segmentControl.selectedSegmentIndex == 1 {
             input.send(.expenseSegmentDidSelect)
         } else if segmentControl.selectedSegmentIndex == 2 {
