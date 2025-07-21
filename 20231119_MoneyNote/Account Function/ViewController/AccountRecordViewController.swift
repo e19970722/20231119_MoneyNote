@@ -36,8 +36,8 @@ class AccountRecordViewController: UIViewController {
     var activityIndicator = UIActivityIndicatorView()
     
     // MARK: - Private Properties
-    private let viewModel = AccountViewModel()
-    private let input: PassthroughSubject<AccountViewModel.Input, Never> = .init()
+    private let viewModel = AccountRecordViewModel()
+    private let input: PassthroughSubject<AccountRecordViewModel.Input, Never> = .init()
     private var cancellables = Set<AnyCancellable>()
     
     // MARK: - Life Cycles
@@ -48,26 +48,6 @@ class AccountRecordViewController: UIViewController {
         setupLoadingView()
         bindViewModel()
         segmentControl.addTarget(self, action: #selector(segmentDidChange), for: .valueChanged)
-        
-        NotificationCenter
-            .default
-            .publisher(for: UITextField.textDidChangeNotification, object: searchBar.searchTextField)
-            .compactMap { notification in
-                (notification.object as? UITextField)?.text
-            }
-            .sink { [weak self] text in
-                if let tempArr = self?.viewModel.filteredRecords.filter({
-                    $0.fields.note?.localizedStandardContains(text) ?? false }),
-                   !text.isEmpty {
-                    self?.viewModel.filteredRecords = tempArr
-                } else {
-                    if let allArr = self?.viewModel.records {
-                        self?.viewModel.filteredRecords = allArr
-                    }
-                }
-                self?.tableView.reloadData()
-                
-            }.store(in: &cancellables)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -125,37 +105,32 @@ class AccountRecordViewController: UIViewController {
             .sink { [weak self] event in
                 
                 switch event {
-                case .fetchItemDidSucceed(let recordResponse):
-                    if let sortedArr = self?.viewModel.sortedArrDate(arr: recordResponse.records) {
-                        self?.viewModel.records = sortedArr
-                        self?.viewModel.filteredRecords = sortedArr
-                        self?.tableView.reloadData()
-                        
-                    }
+                case .fetchItemDidSucceed:
+                    self?.tableView.reloadData()
+                    
                 case .fetchItemDidFail(let error):
-                    let alertVC = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
-                    let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
-                    alertVC.addAction(okAction)
-                    self?.present(alertVC, animated: true)
+                    self?.showAlert(title: "Error",
+                                    message: error.localizedDescription,
+                                    confirmTitle: "OK",
+                                    cancelTitle: nil)
                     
                 case .itemsDidFilter(let filterRecord):
                     self?.viewModel.filteredRecords = filterRecord
                     self?.tableView.reloadData()
                 
                 case .deleteItemDidSucceed:
-                    let alertVC = UIAlertController(title: "Success", message: "Record Delete Successfully", preferredStyle: .alert)
-                    let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
-                    alertVC.addAction(okAction)
-                    self?.present(alertVC, animated: true)
+                    self?.showAlert(title: "Success",
+                                    message: "Record Delete Successfully",
+                                    confirmTitle: "OK",
+                                    cancelTitle: nil)
                     
                     self?.input.send(.fetchItems)
-                    self?.tableView.reloadData()
                     
                 case .deleteItemDidFailed(let error):
-                    let alertVC = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
-                    let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
-                    alertVC.addAction(okAction)
-                    self?.present(alertVC, animated: true)
+                    self?.showAlert(title: "Error",
+                                    message: error.localizedDescription,
+                                    confirmTitle: "OK",
+                                    cancelTitle: nil)
                 default:
                     break
                 }
@@ -163,6 +138,46 @@ class AccountRecordViewController: UIViewController {
                 self?.loadingView.isHidden = true
             }
             .store(in: &cancellables)
+        
+        NotificationCenter
+            .default
+            .publisher(for: UITextField.textDidChangeNotification, object: searchBar.searchTextField)
+            .compactMap { notification in
+                (notification.object as? UITextField)?.text
+            }
+            .sink { [weak self] text in
+                if let tempArr = self?.viewModel.filteredRecords.filter({
+                    $0.fields.note?.localizedStandardContains(text) ?? false }),
+                   !text.isEmpty {
+                    self?.viewModel.filteredRecords = tempArr
+                } else {
+                    if let allArr = self?.viewModel.records {
+                        self?.viewModel.filteredRecords = allArr
+                    }
+                }
+                self?.tableView.reloadData()
+                
+            }.store(in: &cancellables)
+    }
+    
+    private func showAlert(title: String, message: String, confirmTitle: String, cancelTitle: String?) {
+        let alertVC = UIAlertController(title: title,
+                                        message: message,
+                                        preferredStyle: .alert)
+        
+        let okAction = UIAlertAction(title: confirmTitle,
+                                     style: .default,
+                                     handler: nil)
+        alertVC.addAction(okAction)
+        
+        if let cancelTitle = cancelTitle {
+            let cancelAction = UIAlertAction(title: cancelTitle,
+                                             style: .default,
+                                             handler: nil)
+            alertVC.addAction(cancelAction)
+        }
+        
+        self.present(alertVC, animated: true)
     }
     
     @objc private func segmentDidChange() {

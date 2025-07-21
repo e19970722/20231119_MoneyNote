@@ -23,7 +23,7 @@ final class AccountViewModel {
     }
 
     enum Output {
-        case fetchItemDidSucceed(record: RecordResponse)
+        case fetchItemDidSucceed
         case fetchItemDidFail(error: Error)
         case changeAddButton(expenseIncome: AccountType)
         case uploadItemDidSucceed
@@ -36,7 +36,7 @@ final class AccountViewModel {
     
     // MARK: - Public Properties
     var record: Fields?
-    var records = [Record]()
+    @Published var records = [Record]()
     var filteredRecords = [Record]()
     var balanceString: String
     var balanceRatio: Float
@@ -199,8 +199,12 @@ final class AccountViewModel {
             if case .failure(let error) = completion {
                 self?.output.send(.fetchItemDidFail(error: error))
             }
-        } receiveValue: { record in
-            self.output.send(.fetchItemDidSucceed(record: record))
+        } receiveValue: { [weak self] record in
+            guard let self = self else { return }
+            self.calculateBalance(recordResponse: record)
+            self.records = record.records
+            self.filteredRecords = self.sortedArrDate(arr: record.records)
+            self.output.send(.fetchItemDidSucceed)
         }.store(in: &cancellables)
 
     }

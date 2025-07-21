@@ -47,6 +47,7 @@
 		B3AB28462B1381130046410A /* ReportViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3AB28452B1381130046410A /* ReportViewController.swift */; };
 		B3AB284B2B1383640046410A /* AccountType.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3AB284A2B1383640046410A /* AccountType.swift */; };
 		B3B563982B31EEA50054E2FF /* Charts in Frameworks */ = {isa = PBXBuildFile; productRef = B3B563972B31EEA50054E2FF /* Charts */; };
+		B3D3D7492E2E7E560079D2F3 /* AccountRecordViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3D3D7482E2E7E4A0079D2F3 /* AccountRecordViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -91,6 +92,7 @@
 		B3AB28432B1380FA0046410A /* ReportNavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportNavigationController.swift; sourceTree = "<group>"; };
 		B3AB28452B1381130046410A /* ReportViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportViewController.swift; sourceTree = "<group>"; };
 		B3AB284A2B1383640046410A /* AccountType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountType.swift; sourceTree = "<group>"; };
+		B3D3D7482E2E7E4A0079D2F3 /* AccountRecordViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountRecordViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -213,6 +215,7 @@
 		B3AB282F2B1321F70046410A /* ViewModel */ = {
 			isa = PBXGroup;
 			children = (
+				B3D3D7482E2E7E4A0079D2F3 /* AccountRecordViewModel.swift */,
 				B3AB28302B13221C0046410A /* AccountViewModel.swift */,
 			);
 			path = ViewModel;
@@ -343,6 +346,7 @@
 				B3AB28312B13221C0046410A /* AccountViewModel.swift in Sources */,
 				B32BC5C92B09CF1500CA2BB8 /* DateTableViewCell.swift in Sources */,
 				B37BE4ED2B25FFAA003A6508 /* ReportViewModel.swift in Sources */,
+				B3D3D7492E2E7E560079D2F3 /* AccountRecordViewModel.swift in Sources */,
 				B3AB284B2B1383640046410A /* AccountType.swift in Sources */,
 				B38724E02B0BA15A008840B6 /* CategoryTableViewCell.swift in Sources */,
 				B3AB28412B1338F60046410A /* CategoryCollectionViewCell.swift in Sources */,

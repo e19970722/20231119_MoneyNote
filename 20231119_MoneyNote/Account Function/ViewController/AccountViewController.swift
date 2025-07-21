@@ -61,9 +61,6 @@ class AccountViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        tableView.dataSource = self
-        tableView.delegate = self
-        
         setupUI()
         setupLoadingView()
         bindViewModel()
@@ -93,16 +90,14 @@ class AccountViewController: UIViewController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] event in
                 switch event {
-                case .fetchItemDidSucceed(let recordResponse):
-                    self?.viewModel.calculateBalance(recordResponse: recordResponse)
-                    self?.viewModel.records = recordResponse.records
+                case .fetchItemDidSucceed:
                     self?.tableView.reloadData()
                     
                 case .fetchItemDidFail(let error):
-                    let alertVC = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
-                    let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
-                    alertVC.addAction(okAction)
-                    self?.present(alertVC, animated: true)
+                    self?.showAlert(title: "Error",
+                                    message: error.localizedDescription,
+                                    confirmTitle: "OK",
+                                    cancelTitle: nil)
                     
                 case .changeAddButton(let expenseIncome):
                     switch expenseIncome {
@@ -118,19 +113,19 @@ class AccountViewController: UIViewController {
                     }
                     
                 case .uploadItemDidSucceed:
-                    let alertVC = UIAlertController(title: "Success", message: "Record Added Successfully", preferredStyle: .alert)
-                    let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
-                    alertVC.addAction(okAction)
-                    self?.present(alertVC, animated: true)
+                    self?.showAlert(title: "Success",
+                                    message: "Record Added Successfully",
+                                    confirmTitle: "OK",
+                                    cancelTitle: nil)
                     
                     self?.input.send(.fetchItems)
                     self?.resetCell()
                     
                 case .uploadItemDidFailed(let error):
-                    let alertVC = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
-                    let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
-                    alertVC.addAction(okAction)
-                    self?.present(alertVC, animated: true)
+                   self?.showAlert(title: "Error",
+                                    message: error.localizedDescription,
+                                    confirmTitle: "OK",
+                                    cancelTitle: nil)
                     
                 default:
                     break
@@ -142,6 +137,10 @@ class AccountViewController: UIViewController {
     }
     
     private func setupUI() {
+        
+        tableView.dataSource = self
+        tableView.delegate = self
+        
         // Left Nav.: Logo
         let leftContainer = UIView(frame: CGRect(x: 0, y: 0, width: logoImageView.frame.size.width, height: logoImageView.frame.size.height))
         leftContainer.addSubview(logoImageView)
@@ -165,7 +164,6 @@ class AccountViewController: UIViewController {
             addButton.heightAnchor.constraint(equalToConstant: 54),
         ])
         
-        tableView.layoutIfNeeded()
         view.addSubview(tableView)
         tableView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -195,6 +193,26 @@ class AccountViewController: UIViewController {
         loadingView.addSubview(activityIndicator)
         self.view.addSubview(loadingView)
         loadingView.isHidden = true
+    }
+    
+    private func showAlert(title: String, message: String, confirmTitle: String, cancelTitle: String?) {
+        let alertVC = UIAlertController(title: title,
+                                        message: message,
+                                        preferredStyle: .alert)
+        
+        let okAction = UIAlertAction(title: confirmTitle,
+                                     style: .default,
+                                     handler: nil)
+        alertVC.addAction(okAction)
+        
+        if let cancelTitle = cancelTitle {
+            let cancelAction = UIAlertAction(title: cancelTitle,
+                                             style: .default,
+                                             handler: nil)
+            alertVC.addAction(cancelAction)
+        }
+        
+        self.present(alertVC, animated: true)
     }
     
     @objc private func addButtonTapped() {
